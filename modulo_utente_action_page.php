@@ -1,69 +1,100 @@
 <?php
-global $conn;
-require_once "dbconfig.php";
+require_once "dbConfig.php";
 require_once 'myFunctions.php';
 
-// Array con i nomi dei campi che ti aspetti di ricevere
-$campi_richiesti = ['nome', 'email', 'genere','ddn'];
+// Se dbConfig.php crea $conn fuori da funzioni, 'global' qui è ridondante ma male non fa.
+// Assicurati che $conn sia disponibile.
+global $conn;
 
-// Array per raccogliere gli errori
+$campi_richiesti = ['nome', 'email', 'genere', 'ddn'];
 $errori = [];
 
-genera_header("Ricezione Dati");
-// Controlla se il metodo di richiesta è POST
+// ---------------------------------------------------
+// 1. LOGICA DI ELABORAZIONE (Niente HTML qui!)
+// ---------------------------------------------------
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    // A. Validazione Campi Vuoti
     foreach ($campi_richiesti as $campo) {
-        // Verifica se il campo non è stato inviato o se è vuoto
-        // Usiamo trim() per rimuovere spazi bianchi all'inizio e alla fine
         if (!isset($_POST[$campo]) || trim($_POST[$campo]) === '') {
             $errori[] = "Il campo '{$campo}' è obbligatorio.";
         }
     }
 
-    // Se l'array degli errori è vuoto, tutti i dati sono validi
-    if ( empty($errori) ) {
-        echo "<p>Tutti i campi richiesti sono presenti e validi.</p>";
-        // Procedi con l'elaborazione...
-        $nome = htmlspecialchars($_POST['nome']);
-        $email = htmlspecialchars($_POST['email']);
-        $genere = htmlspecialchars($_POST['genere']);
-        $ddn = htmlspecialchars($_POST['ddn']);
-        // $messaggio = htmlspecialchars($_POST['messaggio']);
-        //$messaggio = $_POST['messaggio'];
-        // $interesse = htmlspecialchars($_POST['interesse']);
-        // $newsletter = htmlspecialchars($_POST['newsletter']);
+    // B. Recupero Dati (RAW - Senza htmlspecialchars)
+    // Usiamo trim() per pulire gli spazi, ma lasciamo i caratteri speciali intatti per il DB
+    $nome   = trim($_POST['nome'] ?? '');
+    $email  = trim($_POST['email'] ?? '');
+    $genere = $_POST['genere'] ?? '';
+    $ddn    = $_POST['ddn'] ?? '';
 
-        echo $nome;
-        echo "<br>";
-        echo $genere;
-        echo "<br>";
-        echo $ddn;
-        echo "<br>";
-        echo $email;
-        echo "<br>";
+    // C. Validazione Specifica Email
+    if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errori[] = "L'indirizzo email inserito non è valido.";
+    }
 
-        echo "<br>";
-        // echo $_POST['btnSubmit'];
+    // D. Se non ci sono errori, tentiamo l'inserimento
+    if (empty($errori)) {
 
-        $query="INSERT INTO utente (nome, email, genere, dataNascita) VALUES ('$nome','$email','$genere','$ddn');";
-        echo "<br>";
-        echo $query;
+        $query = "INSERT INTO `utente` (`nome`, `email`, `genere`, `dataNascita`) 
+                  VALUES (:nome, :email, :genere, :ddn)";
 
-        $conn->exec($query);
+        try {
+            $stmt = $conn->prepare($query);
 
+            $stmt->execute([
+                ':nome'   => $nome,
+                ':email'  => $email,
+                ':genere' => $genere,
+                ':ddn'    => $ddn
+            ]);
 
-    } else {
-        echo "Si sono verificati i seguenti errori:<br>";
-        // Mostra tutti gli errori trovati
-        foreach ($errori as $errore) {
-            echo "- " . $errore . "<br>";
+            // SUCCESS! -> Redirect
+            // Non stampiamo nulla, rimandiamo l'utente alla home con messaggio di successo
+            header("Location: index.php?status=ok");
+            exit(); // Stop script immediato
+
+        } catch (PDOException $e) {
+            // Log dell'errore reale per lo sviluppatore
+            error_log("Errore SQL: " . $e->getMessage());
+
+            // Gestione errore per l'utente
+            if ($e->getCode() == 23000) {
+                $errori[] = "Questa email risulta già registrata.";
+            } else {
+                $errori[] = "Errore tecnico nel salvataggio dei dati.";
+            }
         }
     }
-} else {
-    // Messaggio per l'utente
-    echo "<h1>Accesso non consentito</h1>";
-    echo "<p>Questa pagina serve per elaborare i dati di un modulo.</p>";
-    echo "<p>Per favore, compila il modulo partendo da questa pagina:</p>";
-    echo '<a href="index.php" title="Vai alla compilazione del modulo">Torna al modulo</a>';
 }
+
+// ---------------------------------------------------
+// 2. PRESENTAZIONE (HTML)
+// Arriviamo qui SOLO se ci sono errori o se la pagina è chiamata via GET
+// ---------------------------------------------------
+
+genera_header("Esito Operazione");
+?>
+
+    <div class="container">
+        <?php if (!empty($errori)): ?>
+            <div style="color: red; border: 1px solid red; padding: 15px; margin: 20px 0;">
+                <h3>Si sono verificati degli errori:</h3>
+                <ul>
+                    <?php foreach ($errori as $errore): ?>
+                        <li><?= htmlspecialchars($errore) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+                <p><a href="javascript:history.back()">Torna indietro e correggi</a></p>
+            </div>
+        <?php else: ?>
+            <h1>Accesso diretto non consentito</h1>
+            <p>Per favore compila il form dalla home page.</p>
+            <a href="index.php">Vai al modulo</a>
+        <?php endif; ?>
+    </div>
+
+<?php
 footer();
+?>
