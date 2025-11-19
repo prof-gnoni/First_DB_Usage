@@ -33,3 +33,68 @@ Un'applicazione web leggera e sicura per la gestione di utenti, sviluppata in **
 ├── main.js                      # Script JS (caricato con defer) per UI
 ├── .gitignore                   # File esclusi da Git
 └── README.md                    # Documentazione del progetto
+
+🚀 Installazione e Configurazione
+Segui questi passaggi per avviare il progetto in locale.
+
+1. Prerequisiti
+Assicurati di avere installato:
+
+Un server web (Apache/Nginx) o ambiente locale (XAMPP, MAMP, Docker).
+
+PHP 7.4 o superiore.
+
+MariaDB o MySQL.
+
+2. Setup del Database
+Il file SQL per la creazione della struttura si trova nella cartella database/.
+
+Accedi al tuo client database (phpMyAdmin, DBeaver, Terminale).
+
+Importa il file database/first_db_usage.sql.
+
+Oppure via terminale (dalla root del progetto):
+
+Bash
+
+mysql -u root -p < database/first_db_usage.sql
+3. Configurazione Connessione
+Apri il file dbConfig.php e modifica i parametri in base al tuo ambiente.
+
+Nota importante per utenti macOS (MAMP/XAMPP): Se riscontri errori di connessione TCP o socket, usa 127.0.0.1 invece di localhost.
+
+PHP
+
+$host = "127.0.0.1"; // Usa IP per forzare connessione TCP su Unix/Mac
+$port = 3306;        // MAMP usa 8889, XAMPP/Standard usa 3306
+$user = "root";
+$pass = "";          // Su MAMP solitamente è 'root'
+$db   = "first_db_usage";
+4. Avvio
+Posizionati nella cartella del progetto e avvia il server locale. Se usi il terminale integrato di PHP:
+
+Bash
+
+php -S localhost:8000
+Apri il browser su http://localhost:8000.
+
+🧠 Dettagli Tecnici
+Pattern PRG (Post-Redirect-Get)
+Dopo l'invio del form, l'applicazione esegue un redirect per evitare il reinvio accidentale dei dati (il classico avviso "Conferma reinvio modulo" del browser) e fornisce un feedback visivo tramite query string (?status=ok).
+
+PHP
+
+header("Location: index.php?status=ok");
+exit();
+Performance JavaScript (Defer)
+Lo script main.js viene caricato utilizzando l'attributo defer nell'head. Questo garantisce che lo script venga scaricato in parallelo ma eseguito solo dopo che il DOM è completamente costruito, eliminando la necessità di DOMContentLoaded o jQuery.
+
+🛠 Troubleshooting (Problemi comuni)
+Errore "Connection Refused": Controlla che la porta in dbConfig.php corrisponda a quella del tuo server MariaDB/MySQL.
+
+Errore "No such file or directory" (Mac): Cambia $host da localhost a 127.0.0.1.
+
+Il messaggio verde non sparisce: Verifica che il file main.js sia nella stessa cartella di index.php e che il browser non stia usando una versione in cache (prova CTRL+F5).
+
+📝 Autore
+Sviluppato da [Emanuele] come progetto di studio per l'interazione avanzata PHP-MariaDB.
