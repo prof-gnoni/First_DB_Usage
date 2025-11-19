@@ -56,26 +56,26 @@ Importa il file database/first_db_usage.sql.
 Oppure via terminale (dalla root del progetto):
 
 Bash
-
 mysql -u root -p < database/first_db_usage.sql
+
 3. Configurazione Connessione
 Apri il file dbConfig.php e modifica i parametri in base al tuo ambiente.
 
 Nota importante per utenti macOS (MAMP/XAMPP): Se riscontri errori di connessione TCP o socket, usa 127.0.0.1 invece di localhost.
 
 PHP
-
 $host = "127.0.0.1"; // Usa IP per forzare connessione TCP su Unix/Mac
 $port = 3306;        // MAMP usa 8889, XAMPP/Standard usa 3306
 $user = "root";
 $pass = "";          // Su MAMP solitamente è 'root'
 $db   = "first_db_usage";
+
 4. Avvio
 Posizionati nella cartella del progetto e avvia il server locale. Se usi il terminale integrato di PHP:
 
 Bash
-
 php -S localhost:8000
+
 Apri il browser su http://localhost:8000.
 
 🧠 Dettagli Tecnici
@@ -83,11 +83,11 @@ Pattern PRG (Post-Redirect-Get)
 Dopo l'invio del form, l'applicazione esegue un redirect per evitare il reinvio accidentale dei dati (il classico avviso "Conferma reinvio modulo" del browser) e fornisce un feedback visivo tramite query string (?status=ok).
 
 PHP
-
 header("Location: index.php?status=ok");
 exit();
+
 Performance JavaScript (Defer)
-Lo script main.js viene caricato utilizzando l'attributo defer nell'head. Questo garantisce che lo script venga scaricato in parallelo ma eseguito solo dopo che il DOM è completamente costruito, eliminando la necessità di DOMContentLoaded o jQuery.
+Lo script main.js viene caricato utilizzando l'attributo defer nell'head. Questo garantisce che lo script venga scaricato in parallelo ma eseguito solo dopo che il DOM è completamente costruito, eliminando la necessità di DOMContentLoaded o jQuery. (QUESTO È ANCORA DA FARE)
 
 🛠 Troubleshooting (Problemi comuni)
 Errore "Connection Refused": Controlla che la porta in dbConfig.php corrisponda a quella del tuo server MariaDB/MySQL.
