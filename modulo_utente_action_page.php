@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // A. Validazione Campi Vuoti
     foreach ($campi_richiesti as $campo) {
         if (!isset($_POST[$campo]) || trim($_POST[$campo]) === '') {
-            $errori[] = "Il campo '{$campo}' è obbligatorio.";
+            $errori[] = "Il campo '$campo' è obbligatorio.";
         }
     }
 

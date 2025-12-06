@@ -1,0 +1,21 @@
+# File di sistema Mac (inutili su Git)
+.DS_Store
+._*
+
+# File di configurazione dell'IDE (PHPStorm/VSCode)
+# Sono le TUE preferenze personali, non servono agli altri
+.idea/
+.vscode/
+*.iws
+*.iml
+
+# File di Log
+*.log
+
+# Cartelle di dipendenze (se userai Composer in futuro)
+/vendor/
+
+# --- LA QUESTIONE SICUREZZA ---
+# In un progetto REALE, qui ci andrebbe anche dbConfig.php
+# per non caricare le password online.
+# dbConfig.php

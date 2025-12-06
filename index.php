@@ -1,143 +1,135 @@
 <?php
-// 1. De-commentiamo la connessione perché vogliamo leggere i dati dal DB
+// index.php
+
+// 1. Connessione e Funzioni
 global $conn;
 require_once "dbConfig.php";
 require_once "myFunctions.php";
 
-// 2. LOGICA PER MESSAGGIO DI SUCCESSO
-// Controlliamo se nell'URL c'è ?status=ok
-$messaggio_successo = "";
-if (isset($_GET['status']) && $_GET['status'] === 'ok') {
-    $messaggio_successo = "✅ Utente registrato con successo!";
+// 2. LOGICA MESSAGGI (Feedback per l'utente)
+$messaggio_html = "";
+
+if (isset($_GET['status'])) {
+    if ($_GET['status'] === 'ok') {
+        $messaggio_html = '<div id="messaggio" class="msg-box msg-success">✅ Utente registrato con successo!</div>';
+    } elseif ($_GET['status'] === 'deleted') {
+        $messaggio_html = '<div id="messaggio" class="msg-box msg-deleted">🗑️ Utente eliminato con successo.</div>';
+    } elseif ($_GET['status'] === 'updated') {
+        $messaggio_html = '<div id="messaggio" class="msg-box msg-updated">✏️ Utente aggiornato con successo.</div>';
+    }
 }
 
-// 3. LOGICA PER RECUPERARE GLI UTENTI (SELECT)
-// Vogliamo mostrare la lista degli iscritti sotto il form
+// 3. RECUPERO DATI (SELECT)
 $lista_utenti = [];
 try {
-    // Usiamo query() perché non abbiamo parametri esterni (niente WHERE variabile)
-    // Assumo che la tua tabella abbia un campo id autoincrement, altrimenti ordina per nome
-    $stmt = $conn->query("SELECT * FROM utente ORDER BY nome");
+    // Ordiniamo per ID decrescente così vediamo subito gli ultimi inseriti
+    $stmt = $conn->query("SELECT * FROM utente ORDER BY idUtente DESC");
     $lista_utenti = $stmt->fetchAll();
 } catch (PDOException $e) {
     error_log("Errore lettura index: " . $e->getMessage());
-    // Non blocchiamo la pagina se la lettura fallisce, semplicemente la lista sarà vuota
 }
 
-genera_header("Home Page");
+// 4. GENERAZIONE PAGINA
+genera_header("Gestione Utenti");
 ?>
 
-<?php if ($messaggio_successo): ?>
-    <div id="messaggio-successo" style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-        <strong><?= $messaggio_successo ?></strong>
-    </div>
-<?php endif; ?>
+<?= $messaggio_html ?>
 
-    <section id="form">
-        <h3>Modulo di Contatto</h3>
-        <p>I moduli sono fondamentali per l'interazione con l'utente.</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;">
 
-        <form action="modulo_utente_action_page.php" method="post">
-            <fieldset>
-                <legend>Informazioni Personali</legend>
+        <section id="form-section" style="flex: 1; min-width: 300px; max-width: 400px; background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; height: fit-content;">
+            <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;">
+                ➕ Nuovo Utente
+            </h3>
 
+            <form action="modulo_utente_action_page.php" method="post">
                 <label for="nome">Nome:</label><br>
-                <input type="text" id="nome" name="nome" placeholder="Es. Mario Rossi" autofocus><br><br>
+                <input type="text" id="nome" name="nome" placeholder="Es. Mario Rossi" required style="width: 100%; padding: 8px; margin: 5px 0 15px; box-sizing: border-box;"><br>
 
                 <label for="email">Email:</label><br>
-                <input type="email" id="email" name="email"><br><br>
+                <input type="email" id="email" name="email" placeholder="email@esempio.com" required style="width: 100%; padding: 8px; margin: 5px 0 15px; box-sizing: border-box;"><br>
 
                 <label>Genere:</label><br>
-                <input type="radio" id="uomo" name="genere" value="uomo">
-                <label for="uomo">Uomo</label>
-                <input type="radio" id="donna" name="genere" value="donna">
-                <label for="donna">Donna</label><br><br>
+                <div style="margin: 5px 0 15px;">
+                    <input type="radio" id="uomo" name="genere" value="uomo" checked> <label for="uomo">Uomo</label>
+                    <input type="radio" id="donna" name="genere" value="donna"> <label for="donna">Donna</label>
+                </div>
 
                 <label for="ddn">Data di nascita:</label><br>
-                <input type="date" id="ddn" name="ddn"><br><br>
+                <input type="date" id="ddn" name="ddn" style="width: 100%; padding: 8px; margin: 5px 0 15px; box-sizing: border-box;"><br>
 
-                <input type="submit" name="btnSubmit" value="Invia Modulo">
-                <input type="reset" value="Annulla">
-            </fieldset>
-        </form>
-    </section>
+                <input type="submit" name="btnSubmit" value="Registra Utente"
+                       style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; cursor: pointer; width: 100%; font-size: 1rem;">
+            </form>
+        </section>
 
-    <hr>
+        <section id="lista-utenti" style="flex: 2; min-width: 400px;">
+            <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #2196F3; padding-bottom: 10px;">
+                👥 Elenco Iscritti (<?= count($lista_utenti) ?>)
+            </h3>
 
-    <section id="lista-utenti">
-        <h3>Utenti Registrati</h3>
-
-        <?php if (count($lista_utenti) > 0): ?>
-
-            <table style="border-collapse: collapse; border: 1px solid #ddd; width: 100%; max-width: 900px; margin: 20px auto;">
-                <thead>
-                <tr style="background-color: #f2f2f2; text-align: left;">
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Genere</th>
-                    <th>Data di Nascita</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($lista_utenti as $utente): ?>
-                    <?php
-                    // TRASFORMAZIONE DATA
-                    // 1. Prendo la data dal DB (es. "2023-11-15")
-                    $data_grezza = $utente['dataNascita'];
-
-                    // 2. Controllo se la data esiste (non è null o vuota)
-                    if (!empty($data_grezza)) {
-                        // strtotime converte la stringa in un timestamp numerico
-                        // date ricostruisce la stringa nel formato Giorno/Mese/Anno
-                        $data_italiana = date("d/m/Y", strtotime($data_grezza));
-                    } else {
-                        $data_italiana = "-"; // Se manca la data
-                    }
-                    ?>
+            <?php if (count($lista_utenti) > 0): ?>
+                <table>
+                    <thead>
                     <tr>
-                        <td><?= htmlspecialchars($utente['nome']) ?></td>
-                        <td><?= htmlspecialchars($utente['email']) ?></td>
-                        <td><?= htmlspecialchars($utente['genere']) ?></td>
-                        <td><?= $data_italiana ?></td>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Genere</th>
+                        <th>Data Nascita</th>
+                        <th style="width: 120px; text-align: center;">Azioni</th>
                     </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($lista_utenti as $utente): ?>
+                        <?php
+                        // Gestione data
+                        $data_db = $utente['dataNascita'];
+                        $data_it = !empty($data_db) ? date("d/m/Y", strtotime($data_db)) : "-";
+                        ?>
+                        <tr>
+                            <td><strong><?= htmlspecialchars($utente['nome']) ?></strong></td>
+                            <td><?= htmlspecialchars($utente['email']) ?></td>
+                            <td><?= htmlspecialchars($utente['genere']) ?></td>
+                            <td><?= $data_it ?></td>
 
-        <?php else: ?>
+                            <td style="text-align: center; white-space: nowrap;">
+                                <a href="update.php?id=<?= $utente['idUtente'] ?>"
+                                   class="btn-action btn-edit"
+                                   title="Modifica">
+                                    ✏️
+                                </a>
 
-            <div style="padding: 20px; background-color: #f8f9fa; border: 1px solid #ddd; color: #666;">
-                <p>ℹ️ <strong>Nessun utente registrato.</strong></p>
-                <p>Compila il modulo qui sopra per aggiungere il primo utente!</p>
-            </div>
+                                <a href="delete.php?id=<?= $utente['idUtente'] ?>"
+                                   class="btn-action btn-delete"
+                                   onclick="return confirm('Sei sicuro di voler eliminare <?= htmlspecialchars($utente['nome']) ?>?');"
+                                   title="Elimina">
+                                    🗑️
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div style="padding: 20px; background-color: #f8f9fa; border: 1px solid #ddd; border-left: 4px solid #2196F3;">
+                    <p>ℹ️ <strong>Nessun utente trovato.</strong></p>
+                    <p>Usa il modulo a sinistra per aggiungere il primo!</p>
+                </div>
+            <?php endif; ?>
+        </section>
 
-        <?php endif; ?>
-    </section>
-
-    <script>
-        // Aspetta che la pagina sia caricata
-        document.addEventListener("DOMContentLoaded", function() {
-
-            // Cerca l'elemento con l'ID specifico
-            /** @type {HTMLElement} */
-            let boxMessaggio = document.getElementById('messaggio-successo');
-
-            // Se l'elemento esiste (quindi se c'è stato un messaggio di successo)
-            if (boxMessaggio) {
-
-                // Imposta un timer di 5000 millisecondi (5 secondi)
-                setTimeout(function() {
-
-                    // Opzione A: Sparizione secca
-                    // boxMessaggio.style.display = 'none';
-
-                    // Opzione B (Più elegante): Se vuoi che svanisca piano, usa questa logica:
-                    boxMessaggio.style.transition = "opacity 1s ease-out";
-                    boxMessaggio.style.opacity = "0";
-                    setTimeout(function() { boxMessaggio.style.display = 'none'; }, 1000);
-                }, 5000);
-            }
-        });
-    </script>
+    </div> <script>
+    // Script per far sparire i messaggi dopo 4 secondi
+    document.addEventListener("DOMContentLoaded", function() {
+        let box = document.getElementById('messaggio');
+        if (box) {
+            setTimeout(function() {
+                box.style.transition = "opacity 1s ease-out";
+                box.style.opacity = "0";
+                setTimeout(function() { box.style.display = 'none'; }, 1000);
+            }, 4000);
+        }
+    });
+</script>
 
 <?php footer(); ?>
