@@ -64,6 +64,11 @@ footer {
     max-width: 900px;
     margin-left: auto;
     margin-right: auto;
+
+    /* REGOLE ESSENZIALI PER IL COLLASSO FLUIDO */
+    transition: opacity 1s ease-out, height 0.5s ease-out, margin-bottom 0.5s ease-out, padding 0.5s ease-out;
+    overflow: hidden; /* Fondamentale: nasconde il contenuto durante l'animazione */
+    box-sizing: border-box; /* Assicura che padding e bordi siano inclusi nell'altezza */
 }
 
 .msg-success {

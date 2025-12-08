@@ -138,16 +138,43 @@ genera_header("Gestione Utenti");
     </div>
 
     <script>
-        // Script per far sparire i messaggi dopo 4 secondi
+        // Script per far sparire i messaggi dopo 4 secondi in modo fluido
         document.addEventListener("DOMContentLoaded", function() {
-            /** @type {HTMLElement} */ // <--- Diciamo all'IDE che box è un elemento HTML
+
+            /** @type {HTMLElement} */ // Per placare l'IDE
             let box = document.getElementById('messaggio');
+
             if (box) {
+                // Dopo 4 secondi, iniziamo la sequenza di scomparsa
                 setTimeout(function() {
-                    box.style.transition = "opacity 1s ease-out";
+
+                    // FASE 1: Fade-out dell'opacità (1 secondo)
                     box.style.opacity = "0";
-                    setTimeout(function() { box.style.display = 'none'; }, 1000);
-                }, 4000);
+
+                    // FASE 2: Collasso verticale (inizia dopo 1 secondo di fade)
+                    setTimeout(function() {
+
+                        // PASSO 2A: LEGGI E IMPOSTA L'ALTEZZA ESPLICITA (es. 70px)
+                        // Questo prepara l'elemento per la transizione CSS
+                        box.style.height = box.offsetHeight + 'px';
+
+                        // PASSO 2B: Piccolo ritardo (50ms) per forzare il browser a leggere l'altezza prima di cambiarla
+                        setTimeout(function() {
+                            // PASSO 2C: Settiamo i valori finali a zero per attivare il collasso CSS
+                            box.style.padding = '0';
+                            box.style.marginBottom = '0';
+                            box.style.border = 'none';
+                            box.style.height = '0'; // Il collasso avviene qui!
+
+                            // FASE 3: Rimozione completa (dopo 0.5 secondi di collasso)
+                            setTimeout(function() {
+                                box.style.display = 'none';
+                            }, 500);
+
+                        }, 50); // 50ms di ritardo per il browser
+
+                    }, 1000); // 1 secondo (aspetta che l'opacità sia a zero)
+                }, 4000); // Inizia dopo 4 secondi totali
             }
         });
     </script>
