@@ -9,17 +9,22 @@ global $conn;
 require_once "dbConfig.php";
 require_once "myFunctions.php";
 
-// 3. LOGICA MESSAGGI (Feedback per l'utente)
+// 3. LOGICA MESSAGGI (NEW: Legge da SESSIONE e CANCELLA)
 $messaggio_html = "";
+// Verifichiamo se esiste una chiave 'status' in SESSIONE
+if (isset($_SESSION['status'])) {
+    $status = $_SESSION['status'];
 
-if (isset($_GET['status'])) {
-    if ($_GET['status'] === 'ok') {
+    if ($status === 'ok') {
         $messaggio_html = '<div id="messaggio" class="msg-box msg-success">✅ Utente registrato con successo!</div>';
-    } elseif ($_GET['status'] === 'deleted') {
+    } elseif ($status === 'deleted') {
         $messaggio_html = '<div id="messaggio" class="msg-box msg-deleted">🗑️ Utente eliminato con successo.</div>';
-    } elseif ($_GET['status'] === 'updated') {
+    } elseif ($status === 'updated') {
         $messaggio_html = '<div id="messaggio" class="msg-box msg-updated">✏️ Utente aggiornato con successo.</div>';
     }
+
+    // QUESTO È IL PASSAGGIO CRUCIALE: Rimuoviamo il messaggio subito dopo averlo letto.
+    unset($_SESSION['status']);
 }
 
 // 4. RECUPERO DATI (SELECT)

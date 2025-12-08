@@ -18,7 +18,8 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
         $stmt->execute();
 
         // 4. Redirect con successo
-        header("Location: index.php?status=deleted");
+        $_SESSION['status'] = 'deleted';
+        header("Location: index.php");
         exit();
 
     } catch (PDOException $e) {

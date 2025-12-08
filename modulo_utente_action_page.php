@@ -52,8 +52,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]);
 
             // SUCCESS! -> Redirect
-            // Non stampiamo nulla, rimandiamo l'utente alla home con messaggio di successo
-            header("Location: index.php?status=ok");
+            // 1. Scriviamo il messaggio in SESSIONE
+            $_SESSION['status'] = 'ok';
+
+            // 2. Non appendiamo il messaggio all'URL, andiamo a index.php (clean URL)
+            header("Location: index.php");
             exit(); // Stop script immediato
 
         } catch (PDOException $e) {

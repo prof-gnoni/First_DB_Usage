@@ -48,7 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             // Se tutto va bene, torniamo alla lista con messaggio di successo
-            header("Location: index.php?status=updated");
+            // Redirect alla home con successo
+            $_SESSION['status'] = 'updated';
+            header("Location: index.php");
             exit;
 
         } catch (PDOException $e) {
