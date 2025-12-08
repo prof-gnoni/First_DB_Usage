@@ -1,4 +1,5 @@
 <?php
+require_once "auth_check.php";
 require_once "dbConfig.php";
 require_once 'myFunctions.php';
 

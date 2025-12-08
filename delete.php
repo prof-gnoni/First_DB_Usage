@@ -1,4 +1,5 @@
 <?php
+require_once "auth_check.php";
 // delete.php
 global $conn;
 require_once "dbConfig.php";

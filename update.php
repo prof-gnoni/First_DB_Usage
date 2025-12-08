@@ -1,5 +1,6 @@
 <?php
 // update.php
+require_once "auth_check.php";
 global $conn;
 require_once "dbConfig.php";
 require_once "myFunctions.php";
